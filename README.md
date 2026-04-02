@@ -99,6 +99,35 @@ jsonata.evaluate("user.profile.city", data);
 // "Atlanta"
 ```
 
+### JSON String Input
+
+You can pass a JSON string directly as the `data` argument instead of a CFML struct or array. The JSON string is parsed by the Java library's own parser, which is faster than converting CFML data types to Java and automatically preserves key case (no need to worry about CFML uppercasing struct keys).
+
+```cfml
+// Pass JSON string directly - no struct key quoting needed
+jsonata.evaluate("name", '{"name":"John","age":42}');
+// "John"
+
+// Works with nested structures
+jsonata.evaluate("user.profile.city", '{"user":{"profile":{"city":"Atlanta"}}}');
+// "Atlanta"
+
+// Works with arrays
+jsonata.evaluate("$sum($)", '[1,2,3,4,5]');
+// 15
+
+// Filtering on JSON string input
+jsonata.evaluate("products[price > 1].name",
+    '{"products":[{"name":"apple","price":1.50},{"name":"banana","price":0.75}]}');
+// ["apple"]
+
+// Combine with bindings
+jsonata.evaluate("value * $multiplier", '{"value":10}', { "multiplier": 5 });
+// 50
+```
+
+**Tip:** When your data comes from an API response, file read, or `serializeJSON()` output, pass the JSON string directly to `evaluate()` rather than deserializing it first. This avoids CFML's key uppercasing issue entirely and skips the overhead of CFML-to-Java type conversion.
+
 ### Aggregations
 
 ```cfml
@@ -246,6 +275,21 @@ Open `tests/runner.cfm` in your browser through your ColdFusion server. The test
 - [jsonata-java library](https://github.com/dashjoin/jsonata-java)
 - [Lucee JSONata Extension](https://github.com/lucee/extension-jsonata)
 - [Download JAR from Maven Central](https://mvnrepository.com/artifact/com.dashjoin/jsonata)
+
+## Changelog
+
+### 2026-04-02
+- Added documentation and tests for JSON string input support — pass a JSON string directly as the `data` argument to bypass CFML-to-Java type conversion and avoid struct key case sensitivity issues
+
+### 2026-04-01
+- Initial release
+- JSONata expression evaluation via jsonata-java library wrapper
+- Support for Adobe ColdFusion 2016, 2021, 2023, 2025 and Lucee 5, 6, 7
+- Variable bindings (`$varName` in expressions)
+- Custom CFML function registration via compiled Java bridge
+- Timeout and recursion depth limits
+- Flexible JAR loading (classpath, explicit paths, JavaLoader fallback)
+- Typed exception handling (`JSONata.InvalidExpression`, `JSONata.Timeout`, `JSONata.RecursionLimit`)
 
 ## License
 
